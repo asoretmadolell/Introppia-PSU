@@ -33,10 +33,6 @@ CMenu menu( 2 );
 volatile bool buttonPressed = false;
 volatile bool knobTurnedCW = false;
 volatile bool knobTurnedCCW = false;
-int menuLevel = 0;
-const int menuPageTotal = 2;
-int menuPage = 0;
-int menuPageValue[ menuPageTotal ];
 
 /*****************************************************************************/
 /*                                                                           */
@@ -66,7 +62,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.4  Hola, Vir!" );
+    myLcd.print( "v0.5  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -86,39 +82,29 @@ void loop()
 //    analogWrite( GATE_PIN, speed );
 
     // For debugging
-    Serial.print( menuLevel, DEC );
-    Serial.print( menuPage, DEC );
-    Serial.print( menuPageValue[ menuPage ], DEC );
-    Serial.print( " " );
     Serial.print( "Level: " );
     Serial.print( menu.GetLevel(), DEC );
     Serial.print( " Page: " );
-    Serial.print( menu.GetCurrentPage(), DEC );
+    Serial.print( menu.GetCurrentPageIndex(), DEC );
     Serial.print( " Value: " );
-    Serial.print( menu.GetPage( menu.GetCurrentPage() )->GetValue(), DEC );
+    Serial.print( menu.GetPage( menu.GetCurrentPageIndex() )->GetValue(), DEC );
     Serial.println();
 
     if( buttonPressed )
     {
-        switch( menuLevel )
+        switch( menu.GetLevel() )
         {
             case 0:
-                menuLevel = 1;
-                printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
-
                 menu.SetLevel( 1 );
+                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
                 break;
             case 1:
-                menuLevel = 2;
-                printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
-
                 menu.SetLevel( 2 );
+                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
                 break;
             default:
-                menuLevel = 0;
-                myLcd.clear();
-
                 menu.SetLevel( 0 );
+                myLcd.clear();
                 break;
         }
         buttonPressed = false;
@@ -126,19 +112,15 @@ void loop()
 
     if( knobTurnedCW )
     {
-        switch( menuLevel )
+        switch( menu.GetLevel() )
         {
             case 1:
-                if( menuPage < menuPageTotal - 1 ) menuPage++;
-                printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
-
-                if( menu.GetCurrentPage() < menuPageTotal - 1 ) menu.SetCurrentPage( menu.GetCurrentPage() + 1 );
+                if( menu.GetCurrentPageIndex() < menu.GetTotalPages() - 1 ) menu.SetCurrentPageIndex( menu.GetCurrentPageIndex() + 1 );
+                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
                 break;
             case 2:
-                menuPageValue[ menuPage ]++;
-                printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
-
-                menu.GetPage( menu.GetCurrentPage() )->SetValue( menu.GetPage( menu.GetCurrentPage() )->GetValue() + 1 );
+                menu.IncrementValueFromPage( menu.GetCurrentPageIndex() );
+                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
                 break;
             default:
                 break;
@@ -148,19 +130,15 @@ void loop()
 
     if( knobTurnedCCW )
     {
-        switch( menuLevel )
+        switch( menu.GetLevel() )
         {
             case 1:
-                if( menuPage > 0 ) menuPage--;
-                printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
-
-                if( menu.GetCurrentPage() > 0 ) menu.SetCurrentPage( menu.GetCurrentPage() - 1 );
+                if( menu.GetCurrentPageIndex() > 0 ) menu.SetCurrentPageIndex( menu.GetCurrentPageIndex() - 1 );
+                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
                 break;
             case 2:
-                menuPageValue[ menuPage ]--;
-                printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
-
-                menu.GetPage( menu.GetCurrentPage() )->SetValue( menu.GetPage( menu.GetCurrentPage() )->GetValue() - 1 );
+                menu.DecrementValueFromPage( menu.GetCurrentPageIndex() );
+                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
                 break;
             default:
                 break;
@@ -174,17 +152,17 @@ void loop()
 /* printMenu()                                                               */
 /*                                                                           */
 /*****************************************************************************/
-void printMenu( int* menuLevel, int* menuPage, int* menuPageValue )
+void printMenu( int menuLevel, int menuPage, int menuPageValue )
 {
     myLcd.clear();
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Level " );
-    myLcd.print( *menuLevel, DEC );
+    myLcd.print( menuLevel, DEC );
     myLcd.print( ", Page " );
-    myLcd.print( *menuPage, DEC );
+    myLcd.print( menuPage, DEC );
     myLcd.setCursor( 0, 1 );
     myLcd.print( "Value " );
-    myLcd.print( *menuPageValue, DEC );
+    myLcd.print( menuPageValue, DEC );
 }
 
 /*****************************************************************************/

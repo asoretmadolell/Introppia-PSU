@@ -20,12 +20,13 @@ CMenuPage::CMenuPage()
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-CMenu::CMenu( int numOfPages )
+CMenu::CMenu( int NumOfPages )
 {
     m_Level = 0;
-    m_CurrentPage = 0;
+    m_CurrentPageIndex = 0;
+    m_TotalPages = NumOfPages;
 
-    for( int i = 0; i < numOfPages && i < MAX_PAGES; i++ )
+    for( int i = 0; i < m_TotalPages && i < MAX_PAGES; i++ )
     {
         m_pPages[ i ] = new CMenuPage;
     }
@@ -46,6 +47,32 @@ CMenu::~CMenu()
     {
         if( m_pPages[ i ] ) delete m_pPages[ i ];
     }
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/* CMenu::IncrementValueFromPage()                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+void CMenu::IncrementValueFromPage( int pageIndex )
+{
+    CMenuPage* MenuPage = GetPage( pageIndex );
+    MenuPage->SetValue( MenuPage->GetValue() + 1 );
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/* CMenu::DecrementValueFromPage()                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+void CMenu::DecrementValueFromPage( int pageIndex )
+{
+    CMenuPage* MenuPage = GetPage( pageIndex );
+    MenuPage->SetValue( MenuPage->GetValue() - 1 );
 }
 
 /***************************************************************************/
