@@ -14,6 +14,7 @@
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include "src/CMenu.h"
 
 // Rotary encoder
 #define RESW_PIN 2
@@ -27,15 +28,14 @@
 // LCD screen
 LiquidCrystal_I2C myLcd( 0x27, 16, 2 );
 
-// Menu logic
+// Menu
+CMenu menu( 2 );
 volatile bool buttonPressed = false;
 volatile bool knobTurnedCW = false;
 volatile bool knobTurnedCCW = false;
-const int menuLevelTotal = 2;
 int menuLevel = 0;
 const int menuPageTotal = 2;
 int menuPage = 0;
-const int menuPageValueTotal = 2;
 int menuPageValue[ menuPageTotal ];
 
 /*****************************************************************************/
@@ -66,7 +66,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.3  Hola, Vir!" );
+    myLcd.print( "v0.4  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -85,9 +85,17 @@ void loop()
 //    Serial.println( speed );
 //    analogWrite( GATE_PIN, speed );
 
+    // For debugging
     Serial.print( menuLevel, DEC );
     Serial.print( menuPage, DEC );
     Serial.print( menuPageValue[ menuPage ], DEC );
+    Serial.print( " " );
+    Serial.print( "Level: " );
+    Serial.print( menu.GetLevel(), DEC );
+    Serial.print( " Page: " );
+    Serial.print( menu.GetCurrentPage(), DEC );
+    Serial.print( " Value: " );
+    Serial.print( menu.GetPage( menu.GetCurrentPage() )->GetValue(), DEC );
     Serial.println();
 
     if( buttonPressed )
@@ -97,14 +105,20 @@ void loop()
             case 0:
                 menuLevel = 1;
                 printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
+
+                menu.SetLevel( 1 );
                 break;
             case 1:
                 menuLevel = 2;
                 printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
+
+                menu.SetLevel( 2 );
                 break;
             default:
                 menuLevel = 0;
                 myLcd.clear();
+
+                menu.SetLevel( 0 );
                 break;
         }
         buttonPressed = false;
@@ -117,10 +131,14 @@ void loop()
             case 1:
                 if( menuPage < menuPageTotal - 1 ) menuPage++;
                 printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
+
+                if( menu.GetCurrentPage() < menuPageTotal - 1 ) menu.SetCurrentPage( menu.GetCurrentPage() + 1 );
                 break;
             case 2:
                 menuPageValue[ menuPage ]++;
                 printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
+
+                menu.GetPage( menu.GetCurrentPage() )->SetValue( menu.GetPage( menu.GetCurrentPage() )->GetValue() + 1 );
                 break;
             default:
                 break;
@@ -135,10 +153,14 @@ void loop()
             case 1:
                 if( menuPage > 0 ) menuPage--;
                 printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
+
+                if( menu.GetCurrentPage() > 0 ) menu.SetCurrentPage( menu.GetCurrentPage() - 1 );
                 break;
             case 2:
                 menuPageValue[ menuPage ]--;
                 printMenu( &menuLevel, &menuPage, &menuPageValue[ menuPage ] );
+
+                menu.GetPage( menu.GetCurrentPage() )->SetValue( menu.GetPage( menu.GetCurrentPage() )->GetValue() - 1 );
                 break;
             default:
                 break;
