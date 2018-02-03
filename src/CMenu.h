@@ -22,7 +22,7 @@
 class CMenuPage
 {
 private:
-    int       m_Page;
+    int       m_PageIndex;
     int       m_Value;
     String    m_Unit;
     String    m_ValueName;
@@ -31,8 +31,8 @@ public:
               CMenuPage();
     virtual   ~CMenuPage() {}
 
-    int       GetPage() { return m_Page; }
-    void      SetPage( int Page ) { m_Page = Page; }
+    int       GetPageIndex() { return m_PageIndex; }
+    void      SetPageIndex( int PageIndex ) { m_PageIndex = PageIndex; }
     int       GetValue() { return m_Value; }
     void      SetValue( int Value ) { m_Value = Value; }
     String    GetUnit() { return m_Unit; }
@@ -68,11 +68,13 @@ public:
     void        SetCurrentPageIndex( int CurrentPageIndex ) { m_CurrentPageIndex = CurrentPageIndex; }
     int         GetTotalPages() { return m_TotalPages; }
     void        SetTotalPages( int TotalPages) { m_TotalPages = TotalPages; }
-    CMenuPage*  GetPage( int PageIndex ) { return m_pPages[ PageIndex ]; }
+    CMenuPage*  GetPage( int PageIndex = -1 ) { return PageIndex == -1 ? m_pPages[ m_CurrentPageIndex ] : m_pPages[ PageIndex ]; }
 
-    void        IncrementValueFromPage( int PageIndex );
-    void        DecrementValueFromPage( int PageIndex );
-    void        Print();
+    void        IncrementCurrentPageIndex();
+    void        DecrementCurrentPageIndex();
+    void        IncrementValueFromPage( int PageIndex = -1 );
+    void        DecrementValueFromPage( int PageIndex = -1 );
+    void        Print( CMenuPage* MenuPage );
 };
 
 #endif /* CMENU_H_ */

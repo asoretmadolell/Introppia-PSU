@@ -1,5 +1,14 @@
 #include "Arduino.h"
+#include <LiquidCrystal_I2C.h>
 #include "CMenu.h"
+
+/***************************************************************************/
+/*                                                                         */
+/* Globals                                                                 */
+/*                                                                         */
+/***************************************************************************/
+// LCD screen
+extern LiquidCrystal_I2C myLcd;
 
 /***************************************************************************/
 /*                                                                         */
@@ -10,7 +19,7 @@
 /***************************************************************************/
 CMenuPage::CMenuPage()
 {
-    m_Page = m_Value = 0;
+    m_PageIndex = m_Value = 0;
 }
 
 /***************************************************************************/
@@ -29,9 +38,8 @@ CMenu::CMenu( int NumOfPages )
     for( int i = 0; i < m_TotalPages && i < MAX_PAGES; i++ )
     {
         m_pPages[ i ] = new CMenuPage;
+        m_pPages[ i ]->SetPageIndex( i );
     }
-
-//    m_pPages[ 0 ]->SetLevel( 5 );
 }
 
 /***************************************************************************/
@@ -52,13 +60,38 @@ CMenu::~CMenu()
 /***************************************************************************/
 /*                                                                         */
 /*                                                                         */
+/* CMenu::IncrementPageIndex()                                             */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+void CMenu::IncrementCurrentPageIndex()
+{
+    if( m_CurrentPageIndex < m_TotalPages - 1 ) m_CurrentPageIndex++;
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/* CMenu::DecrementPageIndex()                                             */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+void CMenu::DecrementCurrentPageIndex()
+{
+    if( m_CurrentPageIndex > 0 ) m_CurrentPageIndex--;
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
 /* CMenu::IncrementValueFromPage()                                         */
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-void CMenu::IncrementValueFromPage( int pageIndex )
+void CMenu::IncrementValueFromPage( int PageIndex )
 {
-    CMenuPage* MenuPage = GetPage( pageIndex );
+    if( PageIndex == -1 ) PageIndex = m_CurrentPageIndex;
+    CMenuPage* MenuPage = GetPage( PageIndex );
     MenuPage->SetValue( MenuPage->GetValue() + 1 );
 }
 
@@ -69,9 +102,10 @@ void CMenu::IncrementValueFromPage( int pageIndex )
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-void CMenu::DecrementValueFromPage( int pageIndex )
+void CMenu::DecrementValueFromPage( int PageIndex )
 {
-    CMenuPage* MenuPage = GetPage( pageIndex );
+    if( PageIndex == -1 ) PageIndex = m_CurrentPageIndex;
+    CMenuPage* MenuPage = GetPage( PageIndex );
     MenuPage->SetValue( MenuPage->GetValue() - 1 );
 }
 
@@ -82,7 +116,15 @@ void CMenu::DecrementValueFromPage( int pageIndex )
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-void CMenu::Print()
+void CMenu::Print( CMenuPage* MenuPage )
 {
-//    printf( "Level = %d\n", m_Level );
+    myLcd.clear();
+    myLcd.setCursor( 0, 0 );
+    myLcd.print( "Level " );
+    myLcd.print( this->GetLevel(), DEC );
+    myLcd.print( ", Page " );
+    myLcd.print( MenuPage->GetPageIndex(), DEC );
+    myLcd.setCursor( 0, 1 );
+    myLcd.print( "Value " );
+    myLcd.print( MenuPage->GetValue(), DEC );
 }

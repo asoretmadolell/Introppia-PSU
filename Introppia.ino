@@ -1,8 +1,10 @@
-#include "Arduino.h"
-
 /*****************************************************************************/
 /*                                                                           */
-/* Introppia PSU                                                             */
+/*                                                                           */
+/*                                                                           */
+/* Introppia PSU v0.6                                                        */
+/*                                                                           */
+/*                                                                           */
 /*                                                                           */
 /*****************************************************************************/
 /*                                                                           */
@@ -12,27 +14,40 @@
 /*                                                                           */
 /*****************************************************************************/
 
+#include "Arduino.h"
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "src/CMenu.h"
 
+/***************************************************************************/
+/*                                                                         */
+/* Defines                                                                 */
+/*                                                                         */
+/***************************************************************************/
 // Rotary encoder
-#define RESW_PIN 2
-#define RECLK_PIN 3
-#define REDT_PIN 4
+#define RESW_PIN    2
+#define RECLK_PIN   3
+#define REDT_PIN    4
 
 // MOSFET
-#define GATE_PIN 9
-#define POT_PIN A0
+#define GATE_PIN    9
+#define POT_PIN     A0
+
+/***************************************************************************/
+/*                                                                         */
+/* Globals                                                                 */
+/*                                                                         */
+/***************************************************************************/
+// Buttons
+volatile bool buttonPressed = false;
+volatile bool knobTurnedCW = false;
+volatile bool knobTurnedCCW = false;
 
 // LCD screen
 LiquidCrystal_I2C myLcd( 0x27, 16, 2 );
 
 // Menu
 CMenu menu( 2 );
-volatile bool buttonPressed = false;
-volatile bool knobTurnedCW = false;
-volatile bool knobTurnedCCW = false;
 
 /*****************************************************************************/
 /*                                                                           */
@@ -62,7 +77,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.5  Hola, Vir!" );
+    myLcd.print( "v0.6  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -85,9 +100,9 @@ void loop()
     Serial.print( "Level: " );
     Serial.print( menu.GetLevel(), DEC );
     Serial.print( " Page: " );
-    Serial.print( menu.GetCurrentPageIndex(), DEC );
+    Serial.print( menu.GetPage()->GetPageIndex(), DEC );
     Serial.print( " Value: " );
-    Serial.print( menu.GetPage( menu.GetCurrentPageIndex() )->GetValue(), DEC );
+    Serial.print( menu.GetPage()->GetValue(), DEC );
     Serial.println();
 
     if( buttonPressed )
@@ -96,11 +111,11 @@ void loop()
         {
             case 0:
                 menu.SetLevel( 1 );
-                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
+                menu.Print( menu.GetPage() );
                 break;
             case 1:
                 menu.SetLevel( 2 );
-                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
+                menu.Print( menu.GetPage() );
                 break;
             default:
                 menu.SetLevel( 0 );
@@ -115,12 +130,12 @@ void loop()
         switch( menu.GetLevel() )
         {
             case 1:
-                if( menu.GetCurrentPageIndex() < menu.GetTotalPages() - 1 ) menu.SetCurrentPageIndex( menu.GetCurrentPageIndex() + 1 );
-                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
+                menu.IncrementCurrentPageIndex();
+                menu.Print( menu.GetPage() );
                 break;
             case 2:
-                menu.IncrementValueFromPage( menu.GetCurrentPageIndex() );
-                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
+                menu.IncrementValueFromPage();
+                menu.Print( menu.GetPage() );
                 break;
             default:
                 break;
@@ -133,12 +148,12 @@ void loop()
         switch( menu.GetLevel() )
         {
             case 1:
-                if( menu.GetCurrentPageIndex() > 0 ) menu.SetCurrentPageIndex( menu.GetCurrentPageIndex() - 1 );
-                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
+                menu.DecrementCurrentPageIndex();
+                menu.Print( menu.GetPage() );
                 break;
             case 2:
-                menu.DecrementValueFromPage( menu.GetCurrentPageIndex() );
-                printMenu( menu.GetLevel(), menu.GetCurrentPageIndex(), menu.GetPage( menu.GetCurrentPageIndex() )->GetValue() );
+                menu.DecrementValueFromPage();
+                menu.Print( menu.GetPage() );
                 break;
             default:
                 break;
@@ -149,25 +164,9 @@ void loop()
 
 /*****************************************************************************/
 /*                                                                           */
-/* printMenu()                                                               */
-/*                                                                           */
-/*****************************************************************************/
-void printMenu( int menuLevel, int menuPage, int menuPageValue )
-{
-    myLcd.clear();
-    myLcd.setCursor( 0, 0 );
-    myLcd.print( "Level " );
-    myLcd.print( menuLevel, DEC );
-    myLcd.print( ", Page " );
-    myLcd.print( menuPage, DEC );
-    myLcd.setCursor( 0, 1 );
-    myLcd.print( "Value " );
-    myLcd.print( menuPageValue, DEC );
-}
-
-/*****************************************************************************/
 /*                                                                           */
 /* isr0()                                                                    */
+/*                                                                           */
 /*                                                                           */
 /*****************************************************************************/
 void isr0()
@@ -177,7 +176,9 @@ void isr0()
 
 /*****************************************************************************/
 /*                                                                           */
+/*                                                                           */
 /* isr1()                                                                    */
+/*                                                                           */
 /*                                                                           */
 /*****************************************************************************/
 void isr1()
