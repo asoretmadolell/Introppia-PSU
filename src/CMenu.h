@@ -23,32 +23,30 @@
 class CMenuPage
 {
 private:
-    int       m_PageIndex;
-    String    m_PageType;
-    int       m_DefaultValue;
-    double    m_VoltageValue;
-    String    m_Unit;
-    String    m_ValueName;
+     int       m_Value;
+     double    m_Voltage;
+     String    m_Unit;
+     String    m_ValueName;
 
 public:
-              CMenuPage();
-    virtual   ~CMenuPage() {}
+               CMenuPage();
+     virtual   ~CMenuPage() {}
 
-    int       GetPageIndex() { return m_PageIndex; }
-    void      SetPageIndex( int PageIndex ) { m_PageIndex = PageIndex; }
-    String    GetPageType() { return m_PageType; }
-    void      SetPageType( String PageType ) { m_PageType = PageType; }
-    int       GetDefaultValue() { return m_DefaultValue; }
-    void      SetDefaultValue( int DefaultValue ) { m_DefaultValue = DefaultValue; }
-    double    GetVoltageValue() { return m_VoltageValue; }
-    void      SetVoltageValue( double VoltageValue ) { m_VoltageValue = VoltageValue; }
-    String    GetUnit() { return m_Unit; }
-    void      SetUnit( String Unit ) { m_Unit = Unit; }
-    String    GetValueName() { return m_ValueName; }
-    void      SetValueName( String ValueName ) { m_ValueName = ValueName; }
+     //Getters & Setters
+     int       GetValue() { return m_Value; }
+     void      SetValue( int Value ) { m_Value = Value; }
+     double    GetVoltage() { return m_Voltage; }
+     void      SetVoltage( double Value ) { m_Voltage = Value; }
+     String    GetUnit() { return m_Unit; }
+     void      SetUnit( String Unit ) { m_Unit = Unit; }
+     String    GetValueName() { return m_ValueName; }
+     void      SetValueName( String ValueName ) { m_ValueName = ValueName; }
 
-    void      IncrementValue();
-    void      DecrementValue();
+     //Operations
+     void      IncrementValue() { m_Value++ }
+     void      DecrementValue() { m_Value--; }
+     void      IncrementVoltage() { if( m_Voltage < MAX_VOLTAGE ) m_Voltage += 0.5; }
+     void      DecrementVoltage() { if( m_Voltage > 0.0 ) m_Voltage -= 0.5; }
 };
 
 /***************************************************************************/
@@ -64,27 +62,21 @@ class CMenu
 {
 private:
     int         m_Level;
-    int         m_CurrentPageIndex;
-    int         m_TotalPages;
-    CMenuPage*  m_pPages[ MAX_PAGES ];
+    CMenuPage*  m_pCurrentPage;
 
 public:
-                CMenu( int NumOfPages, String PageType[] );
+                CMenu();
     virtual     ~CMenu();
 
     int         GetLevel() { return m_Level; }
     void        SetLevel( int Level ) { m_Level = Level; }
-    int         GetCurrentPageIndex() { return m_CurrentPageIndex; }
-    void        SetCurrentPageIndex( int CurrentPageIndex ) { m_CurrentPageIndex = CurrentPageIndex; }
-    int         GetTotalPages() { return m_TotalPages; }
-    void        SetTotalPages( int TotalPages) { m_TotalPages = TotalPages; }
-    CMenuPage*  GetPage( int PageIndex = -1 ) { return PageIndex == -1 ? m_pPages[ m_CurrentPageIndex ] : m_pPages[ PageIndex ]; }
+    CMenuPage*  GetCurrentPage() { return m_pCurrentPage; }
 
-    void        IncrementCurrentPageIndex();
-    void        DecrementCurrentPageIndex();
-    void        IncrementValueFromPage( int PageIndex = -1 );
-    void        DecrementValueFromPage( int PageIndex = -1 );
-    void        Print( CMenuPage* MenuPage );
+    void        IncrementValue() { m_pPage->IncrementValue(); }
+    void        DecrementValue() { m_pPage->DecrementValue(); }
+    void        IncrementVoltage() { m_pPage->IncrementVoltage(); }
+    void        DecrementVoltage() { m_pPage->DecrementVoltage(); }
+    void        Print();
 };
 
 #endif /* CMENU_H_ */
