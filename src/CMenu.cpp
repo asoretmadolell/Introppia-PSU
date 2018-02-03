@@ -33,7 +33,7 @@ void CMenuPage::IncrementValue()
 {
     if( m_PageType == "Voltage" )
     {
-        m_VoltageValue++;
+        if( m_VoltageValue < MAX_VOLTAGE ) m_VoltageValue += 0.5;
     }
     else
     {
@@ -52,7 +52,7 @@ void CMenuPage::DecrementValue()
 {
     if( m_PageType == "Voltage" )
     {
-        m_VoltageValue--;
+        if( m_VoltageValue > 0) m_VoltageValue -= 0.5;
     }
     else
     {
@@ -168,7 +168,7 @@ void CMenu::Print( CMenuPage* MenuPage )
     myLcd.print( ": " );
     if( MenuPage->GetPageType() == "Voltage" )
     {
-        myLcd.print( MenuPage->GetVoltageValue(), DEC );
+        myLcd.print( MenuPage->GetVoltageValue(), 2 );
     }
     else
     {

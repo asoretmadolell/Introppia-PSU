@@ -2,7 +2,7 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.7                                                        */
+/* Introppia PSU v0.8                                                        */
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
@@ -31,7 +31,6 @@
 
 // MOSFET
 #define GATE_PIN    9
-#define POT_PIN     A0
 
 /***************************************************************************/
 /*                                                                         */
@@ -79,7 +78,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.7  Hola, Vir!" );
+    myLcd.print( "v0.8  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -93,28 +92,12 @@ void setup()
 /*****************************************************************************/
 void loop()
 {
-//    int speed;
-//    speed = map( analogRead( POT_PIN ), 0, 1024, 0, 255 );
-//    Serial.println( speed );
-//    analogWrite( GATE_PIN, speed );
+//    debug();
 
-    // For debugging
-    Serial.print( "Level: " );
-    Serial.print( menu.GetLevel(), DEC );
-    Serial.print( " Page: " );
-    Serial.print( menu.GetPage()->GetPageIndex(), DEC );
-    Serial.print( " Type: " );
-    Serial.print( menu.GetPage()->GetPageType() );
-    Serial.print( " Value: " );
-    if( menu.GetPage()->GetPageType() == "Voltage" )
-    {
-        Serial.print( menu.GetPage()->GetVoltageValue(), DEC );
-    }
-    else
-    {
-        Serial.print( menu.GetPage()->GetDefaultValue(), DEC );
-    }
-    Serial.println();
+    double voltageValue = menu.GetPage( 0 )->GetVoltageValue();
+    double speed = mapDouble( voltageValue, 0, 12, 0, 255 );
+    Serial.println( speed );
+    analogWrite( GATE_PIN, speed );
 
     if( buttonPressed )
     {
@@ -201,16 +184,48 @@ void isr1()
     unsigned long interruptTime = millis();
     if( interruptTime - lastInterruptTime > 2 )
     {
-        if( !digitalRead( REDT_PIN ) )
-        {
-            knobTurnedCW = true;
-        }
-        else
-        {
-            knobTurnedCCW = true;
-        }
+        digitalRead( REDT_PIN ) ? knobTurnedCW = true : knobTurnedCCW = true;
     }
     lastInterruptTime = interruptTime;
 
     attachInterrupt( digitalPinToInterrupt( RECLK_PIN ), isr1, RISING );
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*                                                                           */
+/* debug()                                                                   */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+void debug()
+{
+    Serial.print( "Level: " );
+    Serial.print( menu.GetLevel(), DEC );
+    Serial.print( " Page: " );
+    Serial.print( menu.GetPage()->GetPageIndex(), DEC );
+    Serial.print( " Type: " );
+    Serial.print( menu.GetPage()->GetPageType() );
+    Serial.print( " Value: " );
+    if( menu.GetPage()->GetPageType() == "Voltage" )
+    {
+        Serial.print( menu.GetPage()->GetVoltageValue(), 2 );
+    }
+    else
+    {
+        Serial.print( menu.GetPage()->GetDefaultValue(), DEC );
+    }
+    Serial.println();
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*                                                                           */
+/* mapDouble()                                                               */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+double mapDouble( double x, double in_min, double in_max, double out_min, double out_max )
+{
+    return ( x - in_min ) * ( out_max - out_min ) / ( in_max - in_min ) + out_min;
 }
