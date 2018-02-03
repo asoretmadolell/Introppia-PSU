@@ -19,7 +19,45 @@ extern LiquidCrystal_I2C myLcd;
 /***************************************************************************/
 CMenuPage::CMenuPage()
 {
-    m_PageIndex = m_Value = 0;
+    m_VoltageValue = m_DefaultValue = m_PageIndex = 0;
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/* CMenuPage::IncrementValue()                                             */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+void CMenuPage::IncrementValue()
+{
+    if( m_PageType == "Voltage" )
+    {
+        m_VoltageValue++;
+    }
+    else
+    {
+        m_DefaultValue++;
+    }
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/* CMenuPage::DecrementValue()                                             */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+void CMenuPage::DecrementValue()
+{
+    if( m_PageType == "Voltage" )
+    {
+        m_VoltageValue--;
+    }
+    else
+    {
+        m_DefaultValue--;
+    }
 }
 
 /***************************************************************************/
@@ -29,7 +67,7 @@ CMenuPage::CMenuPage()
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-CMenu::CMenu( int NumOfPages )
+CMenu::CMenu( int NumOfPages, String PageType[] )
 {
     m_Level = 0;
     m_CurrentPageIndex = 0;
@@ -39,6 +77,7 @@ CMenu::CMenu( int NumOfPages )
     {
         m_pPages[ i ] = new CMenuPage;
         m_pPages[ i ]->SetPageIndex( i );
+        m_pPages[ i ]->SetPageType( PageType[ i ] );
     }
 }
 
@@ -92,7 +131,7 @@ void CMenu::IncrementValueFromPage( int PageIndex )
 {
     if( PageIndex == -1 ) PageIndex = m_CurrentPageIndex;
     CMenuPage* MenuPage = GetPage( PageIndex );
-    MenuPage->SetValue( MenuPage->GetValue() + 1 );
+    MenuPage->IncrementValue();
 }
 
 /***************************************************************************/
@@ -106,7 +145,7 @@ void CMenu::DecrementValueFromPage( int PageIndex )
 {
     if( PageIndex == -1 ) PageIndex = m_CurrentPageIndex;
     CMenuPage* MenuPage = GetPage( PageIndex );
-    MenuPage->SetValue( MenuPage->GetValue() - 1 );
+    MenuPage->DecrementValue();
 }
 
 /***************************************************************************/
@@ -125,6 +164,15 @@ void CMenu::Print( CMenuPage* MenuPage )
     myLcd.print( ", Page " );
     myLcd.print( MenuPage->GetPageIndex(), DEC );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "Value " );
-    myLcd.print( MenuPage->GetValue(), DEC );
+    myLcd.print( MenuPage->GetPageType() );
+    myLcd.print( ": " );
+    if( MenuPage->GetPageType() == "Voltage" )
+    {
+        myLcd.print( MenuPage->GetVoltageValue(), DEC );
+    }
+    else
+    {
+        myLcd.print( MenuPage->GetDefaultValue(), DEC );
+    }
+    myLcd.print( MenuPage->GetUnit() );
 }

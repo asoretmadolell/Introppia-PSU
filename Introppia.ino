@@ -2,7 +2,7 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.6                                                        */
+/* Introppia PSU v0.7                                                        */
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
@@ -47,7 +47,9 @@ volatile bool knobTurnedCCW = false;
 LiquidCrystal_I2C myLcd( 0x27, 16, 2 );
 
 // Menu
-CMenu menu( 2 );
+const int NumOfPages = 2;
+String PageType[ NumOfPages ] = { "Voltage", "Contrast" };
+CMenu menu( NumOfPages, PageType );
 
 /*****************************************************************************/
 /*                                                                           */
@@ -77,7 +79,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.6  Hola, Vir!" );
+    myLcd.print( "v0.7  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -101,8 +103,17 @@ void loop()
     Serial.print( menu.GetLevel(), DEC );
     Serial.print( " Page: " );
     Serial.print( menu.GetPage()->GetPageIndex(), DEC );
+    Serial.print( " Type: " );
+    Serial.print( menu.GetPage()->GetPageType() );
     Serial.print( " Value: " );
-    Serial.print( menu.GetPage()->GetValue(), DEC );
+    if( menu.GetPage()->GetPageType() == "Voltage" )
+    {
+        Serial.print( menu.GetPage()->GetVoltageValue(), DEC );
+    }
+    else
+    {
+        Serial.print( menu.GetPage()->GetDefaultValue(), DEC );
+    }
     Serial.println();
 
     if( buttonPressed )

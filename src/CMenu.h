@@ -23,7 +23,9 @@ class CMenuPage
 {
 private:
     int       m_PageIndex;
-    int       m_Value;
+    String    m_PageType;
+    int       m_DefaultValue;
+    double    m_VoltageValue;
     String    m_Unit;
     String    m_ValueName;
 
@@ -33,12 +35,19 @@ public:
 
     int       GetPageIndex() { return m_PageIndex; }
     void      SetPageIndex( int PageIndex ) { m_PageIndex = PageIndex; }
-    int       GetValue() { return m_Value; }
-    void      SetValue( int Value ) { m_Value = Value; }
+    String    GetPageType() { return m_PageType; }
+    void      SetPageType( String PageType ) { m_PageType = PageType; }
+    int       GetDefaultValue() { return m_DefaultValue; }
+    void      SetDefaultValue( int DefaultValue ) { m_DefaultValue = DefaultValue; }
+    double    GetVoltageValue() { return m_VoltageValue; }
+    void      SetVoltageValue( double VoltageValue ) { m_VoltageValue = VoltageValue; }
     String    GetUnit() { return m_Unit; }
     void      SetUnit( String Unit ) { m_Unit = Unit; }
     String    GetValueName() { return m_ValueName; }
     void      SetValueName( String ValueName ) { m_ValueName = ValueName; }
+
+    void      IncrementValue();
+    void      DecrementValue();
 };
 
 /***************************************************************************/
@@ -59,7 +68,7 @@ private:
     CMenuPage*  m_pPages[ MAX_PAGES ];
 
 public:
-                CMenu( int NumOfPages );
+                CMenu( int NumOfPages, String PageType[] );
     virtual     ~CMenu();
 
     int         GetLevel() { return m_Level; }
