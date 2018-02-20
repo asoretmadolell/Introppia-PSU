@@ -2,7 +2,7 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.8                                                        */
+/* Introppia PSU v0.9                                                        */
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
@@ -79,7 +79,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.8  Hola, Vir!" );
+    myLcd.print( "v0.9  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -93,9 +93,9 @@ void setup()
 /*****************************************************************************/
 void loop()
 {
-//    debug();
+    debug();
 
-    double voltageValue = menu.GetPage( 0 )->GetVoltageValue();
+    double voltageValue = menu.GetPage( 0 )->GetValue();
     double speed = mapDouble( voltageValue, 0, 12, 0, 255 );
     Serial.println( speed );
     analogWrite( GATE_PIN, speed );
@@ -106,11 +106,11 @@ void loop()
         {
             case 0:
                 menu.SetLevel( 1 );
-                menu.Print( menu.GetPage() );
+                menu.Print();
                 break;
             case 1:
                 menu.SetLevel( 2 );
-                menu.Print( menu.GetPage() );
+                menu.Print();
                 break;
             default:
                 menu.SetLevel( 0 );
@@ -126,11 +126,11 @@ void loop()
         {
             case 1:
                 menu.IncrementCurrentPageIndex();
-                menu.Print( menu.GetPage() );
+                menu.Print();
                 break;
             case 2:
                 menu.IncrementValueFromPage();
-                menu.Print( menu.GetPage() );
+                menu.Print();
                 break;
             default:
                 break;
@@ -144,11 +144,11 @@ void loop()
         {
             case 1:
                 menu.DecrementCurrentPageIndex();
-                menu.Print( menu.GetPage() );
+                menu.Print();
                 break;
             case 2:
                 menu.DecrementValueFromPage();
-                menu.Print( menu.GetPage() );
+                menu.Print();
                 break;
             default:
                 break;
@@ -201,20 +201,21 @@ void isr1()
 /*****************************************************************************/
 void debug()
 {
-    Serial.print( "Level: " );
+    Serial.print( "Level " );
     Serial.print( menu.GetLevel(), DEC );
-    Serial.print( " Page: " );
-    Serial.print( menu.GetPage()->GetPageIndex(), DEC );
-    Serial.print( " Type: " );
+    Serial.print( ", Page " );
+    Serial.print( menu.GetCurrentPageIndex(), DEC );
+    Serial.print( ", Type " );
     Serial.print( menu.GetPage()->GetPageType() );
-    Serial.print( " Value: " );
+    Serial.print( ", Value: " );
     if( menu.GetPage()->GetPageType() == "Voltage" )
     {
-        Serial.print( menu.GetPage()->GetVoltageValue(), 2 );
+        CMenuPageVoltage* MPV = (CMenuPageVoltage*)menu.GetPage();
+        Serial.print( MPV->GetValue(), 2 );
     }
     else
     {
-        Serial.print( menu.GetPage()->GetDefaultValue(), DEC );
+        Serial.print( menu.GetPage()->GetValue(), DEC );
     }
     Serial.println();
 }

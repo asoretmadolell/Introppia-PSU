@@ -5,50 +5,35 @@
 /***************************************************************************/
 /*                                                                         */
 /*                                                                         */
-/* CMenuPage::CMenuPage()                                                  */
+/* CMenuPageVoltage::CMenuPageVoltage()                                    */
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-CMenuPage::CMenuPage()
+CMenuPageVoltage::CMenuPageVoltage()
 {
-    m_VoltageValue = m_DefaultValue = m_PageIndex = 0;
+    m_VoltageValue = 0;
 }
 
 /***************************************************************************/
 /*                                                                         */
 /*                                                                         */
-/* CMenuPage::IncrementValue()                                             */
+/* CMenuPageVoltage::IncrementValue()                                      */
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-void CMenuPage::IncrementValue()
+void CMenuPageVoltage::IncrementValue()
 {
-    if( m_PageType == "Voltage" )
-    {
-        if( m_VoltageValue < MAX_VOLTAGE ) m_VoltageValue += 0.5;
-    }
-    else
-    {
-        m_DefaultValue++;
-    }
+    if( m_VoltageValue < MAX_VOLTAGE ) m_VoltageValue += 0.5;
 }
 
 /***************************************************************************/
 /*                                                                         */
 /*                                                                         */
-/* CMenuPage::DecrementValue()                                             */
+/* CMenuPageVoltage::DecrementValue()                                      */
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-void CMenuPage::DecrementValue()
+void CMenuPageVoltage::DecrementValue()
 {
-    if( m_PageType == "Voltage" )
-    {
-        if( m_VoltageValue > 0) m_VoltageValue -= 0.5;
-    }
-    else
-    {
-        m_DefaultValue--;
-    }
+    if( m_VoltageValue > 0) m_VoltageValue -= 0.5;
 }
-

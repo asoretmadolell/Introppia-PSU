@@ -20,13 +20,19 @@ extern LiquidCrystal_I2C myLcd;
 /***************************************************************************/
 CMenu::CMenu( int NumOfPages, String PageType[] )
 {
-    m_Level = 0;
-    m_CurrentPageIndex = 0;
+    m_CurrentPageIndex = m_Level = 0;
     m_TotalPages = NumOfPages;
 
     for( int i = 0; i < m_TotalPages && i < MAX_PAGES; i++ )
     {
-        m_pPages[ i ] = new CMenuPage;
+        if( PageType[ i ] == "Voltage" )
+        {
+            m_pPages[ i ] = new CMenuPageVoltage;
+        }
+        else
+        {
+            m_pPages[ i ] = new CMenuPageBase;
+        }
         m_pPages[ i ]->SetPageIndex( i );
         m_pPages[ i ]->SetPageType( PageType[ i ] );
     }
@@ -81,8 +87,7 @@ void CMenu::DecrementCurrentPageIndex()
 void CMenu::IncrementValueFromPage( int PageIndex )
 {
     if( PageIndex == -1 ) PageIndex = m_CurrentPageIndex;
-    CMenuPage* MenuPage = GetPage( PageIndex );
-    MenuPage->IncrementValue();
+    GetPage( PageIndex )->IncrementValue();
 }
 
 /***************************************************************************/
@@ -95,8 +100,7 @@ void CMenu::IncrementValueFromPage( int PageIndex )
 void CMenu::DecrementValueFromPage( int PageIndex )
 {
     if( PageIndex == -1 ) PageIndex = m_CurrentPageIndex;
-    CMenuPage* MenuPage = GetPage( PageIndex );
-    MenuPage->DecrementValue();
+    GetPage( PageIndex )->DecrementValue();
 }
 
 /***************************************************************************/
@@ -106,24 +110,25 @@ void CMenu::DecrementValueFromPage( int PageIndex )
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-void CMenu::Print( CMenuPage* MenuPage )
+void CMenu::Print()
 {
     myLcd.clear();
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Level " );
     myLcd.print( this->GetLevel(), DEC );
     myLcd.print( ", Page " );
-    myLcd.print( MenuPage->GetPageIndex(), DEC );
+    myLcd.print( this->GetCurrentPageIndex(), DEC );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( MenuPage->GetPageType() );
+    myLcd.print( this->GetPage()->GetPageType() );
     myLcd.print( ": " );
-    if( MenuPage->GetPageType() == "Voltage" )
+    if( this->GetPage()->GetPageType() == "Voltage" )
     {
-        myLcd.print( MenuPage->GetVoltageValue(), 2 );
+        CMenuPageVoltage* MPV = (CMenuPageVoltage*)this->GetPage();
+        myLcd.print( MPV->GetValue(), 2 );
     }
     else
     {
-        myLcd.print( MenuPage->GetDefaultValue(), DEC );
+        myLcd.print( this->GetPage()->GetValue(), DEC );
     }
-    myLcd.print( MenuPage->GetUnit() );
+    myLcd.print( this->GetPage()->GetUnit() );
 }
