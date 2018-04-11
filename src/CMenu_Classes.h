@@ -2,6 +2,7 @@
 #define CMENU_H_
 
 #include "Arduino.h"
+#include <map>
 
 /***************************************************************************/
 /*                                                                         */
@@ -60,7 +61,8 @@ public:
 class CMenuPageVoltage : public CMenuPageBase
 {
 private:
-    double    m_VoltageValue;
+    double                      m_VoltageValue;
+    std::map< double, int >     m_VoltagePwm;
 
 public:
             CMenuPageVoltage();
@@ -68,6 +70,7 @@ public:
 
             double    GetValue() { return m_VoltageValue; }
             void      SetValue( double VoltageValue ) { m_VoltageValue = VoltageValue; }
+            int       GetPwm( double Voltage ) { return m_VoltagePwm[ Voltage ]; }
 
     virtual void      IncrementValue();
     virtual void      DecrementValue();

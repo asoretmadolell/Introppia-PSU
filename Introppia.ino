@@ -2,7 +2,7 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.9                                                        */
+/* Introppia PSU v0.10                                                       */
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
@@ -17,6 +17,7 @@
 #include "Arduino.h"
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <ArduinoSTL.h>
 
 #include "src/CMenu_Classes.h"
 
@@ -32,6 +33,8 @@
 
 // MOSFET
 #define GATE_PIN    9
+#define POT_PIN     A0
+#define PEDAL_PIN   8
 
 /***************************************************************************/
 /*                                                                         */
@@ -70,6 +73,7 @@ void setup()
     // MOSFET
     pinMode( GATE_PIN, OUTPUT );
     digitalWrite( GATE_PIN, LOW );
+    pinMode( PEDAL_PIN, INPUT_PULLUP );
 
     Serial.begin( 9600 );
     Wire.begin();
@@ -79,7 +83,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.9  Hola, Vir!" );
+    myLcd.print( "v0.10  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -93,12 +97,33 @@ void setup()
 /*****************************************************************************/
 void loop()
 {
-    debug();
+//    debug();
 
+    if( !digitalRead( PEDAL_PIN ) )
+    {
+        CMenuPageVoltage* pageVoltage = (CMenuPageVoltage*)menu.GetPage( 0 );
+        int voltageValue = pageVoltage->GetPwm( pageVoltage->GetValue() );
+        analogWrite( GATE_PIN, voltageValue );
+    }
+    else
+    {
+        analogWrite( GATE_PIN, 0 );
+    }
+
+    /*
     double voltageValue = menu.GetPage( 0 )->GetValue();
     double speed = mapDouble( voltageValue, 0, 12, 0, 255 );
-    Serial.println( speed );
-    analogWrite( GATE_PIN, speed );
+    */
+
+    /*
+    int potValue = analogRead( A0 );
+    int analogSpeed = map( potValue, 0, 1023, 0, 255 );
+    myLcd.clear();
+    myLcd.setCursor( 0, 0 );
+    myLcd.print( potValue );
+    myLcd.setCursor( 0, 1 );
+    myLcd.print( analogSpeed );
+    */
 
     if( buttonPressed )
     {
