@@ -2,7 +2,7 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.10                                                       */
+/* Introppia PSU v0.11                                                       */
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
@@ -51,7 +51,7 @@ LiquidCrystal_I2C myLcd( 0x27, 16, 2 );
 
 // Menu
 const int NumOfPages = 2;
-String PageType[ NumOfPages ] = { "Voltage", "Contrast" };
+String PageType[ NumOfPages ] = { "PWM", "Contrast" };
 CMenu menu( NumOfPages, PageType );
 
 /*****************************************************************************/
@@ -83,7 +83,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.10  Hola, Vir!" );
+    myLcd.print( "v0.11  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -101,9 +101,9 @@ void loop()
 
     if( !digitalRead( PEDAL_PIN ) )
     {
-        CMenuPageVoltage* pageVoltage = (CMenuPageVoltage*)menu.GetPage( 0 );
-        int voltageValue = pageVoltage->GetPwm( pageVoltage->GetValue() );
-        analogWrite( GATE_PIN, voltageValue );
+        CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage( 0 );
+        int PwmValue = pagePwm->GetValue();
+        analogWrite( GATE_PIN, PwmValue );
     }
     else
     {
@@ -233,10 +233,10 @@ void debug()
     Serial.print( ", Type " );
     Serial.print( menu.GetPage()->GetPageType() );
     Serial.print( ", Value: " );
-    if( menu.GetPage()->GetPageType() == "Voltage" )
+    if( menu.GetPage()->GetPageType() == "PWM" )
     {
-        CMenuPageVoltage* MPV = (CMenuPageVoltage*)menu.GetPage();
-        Serial.print( MPV->GetValue(), 2 );
+        CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage();
+        Serial.print( pagePwm->GetValue(), DEC );
     }
     else
     {

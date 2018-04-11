@@ -25,9 +25,9 @@ CMenu::CMenu( int NumOfPages, String PageType[] )
 
     for( int i = 0; i < m_TotalPages && i < MAX_PAGES; i++ )
     {
-        if( PageType[ i ] == "Voltage" )
+        if( PageType[ i ] == "PWM" )
         {
-            m_pPages[ i ] = new CMenuPageVoltage;
+            m_pPages[ i ] = new CMenuPagePwm;
         }
         else
         {
@@ -121,10 +121,10 @@ void CMenu::Print()
     myLcd.setCursor( 0, 1 );
     myLcd.print( this->GetPage()->GetPageType() );
     myLcd.print( ": " );
-    if( this->GetPage()->GetPageType() == "Voltage" )
+    if( this->GetPage()->GetPageType() == "PWM" )
     {
-        CMenuPageVoltage* MPV = (CMenuPageVoltage*)this->GetPage();
-        myLcd.print( MPV->GetValue(), 2 );
+        CMenuPagePwm* pagePwm = (CMenuPagePwm*)this->GetPage();
+        myLcd.print( pagePwm->GetValue(), DEC );
     }
     else
     {

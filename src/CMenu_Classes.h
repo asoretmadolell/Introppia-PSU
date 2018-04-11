@@ -10,6 +10,7 @@
 /*                                                                         */
 /***************************************************************************/
 #define MAX_PAGES   20
+#define MAX_PWM     255
 #define MAX_VOLTAGE 12
 
 /***************************************************************************/
@@ -53,24 +54,22 @@ public:
 /*                                                                         */
 /*                                                                         */
 /*                                                                         */
-/* CMenuPageVoltage Class                                                  */
+/* CMenuPagePwm Class                                                      */
 /*                                                                         */
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-class CMenuPageVoltage : public CMenuPageBase
+class CMenuPagePwm : public CMenuPageBase
 {
 private:
-    double                      m_VoltageValue;
-    std::map< double, int >     m_VoltagePwm;
+    int         m_PwmValue;
 
 public:
-            CMenuPageVoltage();
-    virtual ~CMenuPageVoltage() {}
+            CMenuPagePwm();
+    virtual ~CMenuPagePwm() {}
 
-            double    GetValue() { return m_VoltageValue; }
-            void      SetValue( double VoltageValue ) { m_VoltageValue = VoltageValue; }
-            int       GetPwm( double Voltage ) { return m_VoltagePwm[ Voltage ]; }
+            int       GetValue() { return m_PwmValue; }
+            void      SetValue( int PwmValue ) { m_PwmValue = PwmValue; }
 
     virtual void      IncrementValue();
     virtual void      DecrementValue();
