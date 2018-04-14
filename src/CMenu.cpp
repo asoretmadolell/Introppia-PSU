@@ -18,23 +18,28 @@ extern LiquidCrystal_I2C myLcd;
 /*                                                                         */
 /*                                                                         */
 /***************************************************************************/
-CMenu::CMenu( int NumOfPages, String PageType[] )
+CMenu::CMenu( int NumOfPages, int PageType[] )
 {
     m_CurrentPageIndex = m_Level = 0;
     m_TotalPages = NumOfPages;
 
     for( int i = 0; i < m_TotalPages && i < MAX_PAGES; i++ )
     {
-        if( PageType[ i ] == "PWM" )
+        switch( PageType[ i ] )
         {
-            m_pPages[ i ] = new CMenuPagePwm;
-        }
-        else
-        {
-            m_pPages[ i ] = new CMenuPageBase;
+            case 1:
+                m_pPages[ i ] = new CMenuPagePwm;
+                break;
+            case 2:
+                m_pPages[ i ] = new CMenuPagePedal;
+                break;
+            case 3:
+                m_pPages[ i ] = new CMenuPageContrast;
+                break;
+            default:
+                break;
         }
         m_pPages[ i ]->SetPageIndex( i );
-        m_pPages[ i ]->SetPageType( PageType[ i ] );
     }
 }
 
@@ -119,16 +124,30 @@ void CMenu::Print()
     myLcd.print( ", Page " );
     myLcd.print( this->GetCurrentPageIndex(), DEC );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( this->GetPage()->GetPageType() );
+    myLcd.print( this->GetPage()->GetName() );
     myLcd.print( ": " );
-    if( this->GetPage()->GetPageType() == "PWM" )
+    switch( this->GetPage()->GetType() )
     {
-        CMenuPagePwm* pagePwm = (CMenuPagePwm*)this->GetPage();
-        myLcd.print( pagePwm->GetValue(), DEC );
-    }
-    else
-    {
-        myLcd.print( this->GetPage()->GetValue(), DEC );
+        case 1:
+        {
+            CMenuPagePwm* pagePwm = (CMenuPagePwm*)this->GetPage();
+            myLcd.print( pagePwm->GetPwm(), DEC );
+            break;
+        }
+        case 2:
+        {
+            CMenuPagePedal* pagePedal = (CMenuPagePedal*)this->GetPage();
+            myLcd.print( pagePedal->GetPedal() );
+            break;
+        }
+        case 3:
+        {
+            CMenuPageContrast* pageContrast = (CMenuPageContrast*)this->GetPage();
+            myLcd.print( pageContrast->GetContrast(), DEC );
+            break;
+        }
+        default:
+            break;
     }
     myLcd.print( this->GetPage()->GetUnit() );
 }

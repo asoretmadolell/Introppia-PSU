@@ -13,6 +13,8 @@
 #define MAX_PWM     255
 #define MAX_VOLTAGE 12
 
+enum { Default, Pwm, Pedal, Contrast };
+
 /***************************************************************************/
 /*                                                                         */
 /*                                                                         */
@@ -26,10 +28,6 @@ class CMenuPageBase
 {
 private:
     int       m_PageIndex;
-    String    m_PageType;
-    int       m_DefaultValue;
-    String    m_Unit;
-    String    m_ValueName;
 
 public:
               CMenuPageBase();
@@ -37,17 +35,15 @@ public:
 
     int       GetPageIndex() { return m_PageIndex; }
     void      SetPageIndex( int PageIndex ) { m_PageIndex = PageIndex; }
-    String    GetPageType() { return m_PageType; }
-    void      SetPageType( String PageType ) { m_PageType = PageType; }
-    int       GetValue() { return m_DefaultValue; }
-    void      SetValue( int DefaultValue ) { m_DefaultValue = DefaultValue; }
-    String    GetUnit() { return m_Unit; }
-    void      SetUnit( String Unit ) { m_Unit = Unit; }
-    String    GetValueName() { return m_ValueName; }
-    void      SetValueName( String ValueName ) { m_ValueName = ValueName; }
 
-    virtual void      IncrementValue();
-    virtual void      DecrementValue();
+    // Overridable methods
+    virtual String  GetName() { return "Unknown"; }
+    virtual int     GetType() { return Default; }
+    virtual String  GetUnit() { return "Unknown"; }
+
+    // Pure methods
+    virtual void    IncrementValue() = 0;
+    virtual void    DecrementValue() = 0;
 };
 
 /***************************************************************************/
@@ -62,17 +58,88 @@ public:
 class CMenuPagePwm : public CMenuPageBase
 {
 private:
-    int         m_PwmValue;
+    int     m_PwmValue;
 
 public:
             CMenuPagePwm();
     virtual ~CMenuPagePwm() {}
 
-            int       GetValue() { return m_PwmValue; }
-            void      SetValue( int PwmValue ) { m_PwmValue = PwmValue; }
+    // Base overridden methods
+    virtual String  GetName() { return "Pwm"; }
+    virtual int     GetType() { return Pwm; }
+    virtual String  GetUnit() { return "Bits"; }
 
-    virtual void      IncrementValue();
-    virtual void      DecrementValue();
+    // Base pure methods
+    virtual void    IncrementValue();
+    virtual void    DecrementValue();
+
+    // Class methods
+            int     GetPwm() { return m_PwmValue; }
+            void    SetPwm( int PwmValue ) { m_PwmValue = PwmValue; }
+};
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/* CMenuPagePedal Class                                                    */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+class CMenuPagePedal : public CMenuPageBase
+{
+private:
+    bool    m_PedalValue;
+
+public:
+            CMenuPagePedal();
+    virtual ~CMenuPagePedal() {}
+
+    // Base overridden methods
+    virtual String  GetName() { return "Pedal"; }
+    virtual int     GetType() { return Pedal; }
+    virtual String  GetUnit() { return ""; }
+
+    // Base pure methods
+    virtual void    IncrementValue();
+    virtual void    DecrementValue();
+
+    // Class pure methods
+            bool    GetPedal() { return m_PedalValue; }
+            void    SetPedal( bool PedalValue ) { m_PedalValue = PedalValue; }
+};
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/* CMenuPageContrast Class                                                 */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+class CMenuPageContrast : public CMenuPageBase
+{
+private:
+    int     m_ContrastValue;
+
+public:
+            CMenuPageContrast();
+    virtual ~CMenuPageContrast() {}
+
+    // Base overridden methods
+    virtual String  GetName() { return "Contrast"; }
+    virtual int     GetType() { return Contrast; }
+    virtual String  GetUnit() { return "Bits"; }
+
+    // Base pure methods
+    virtual void    IncrementValue();
+    virtual void    DecrementValue();
+
+    // Class pure methods
+            int     GetContrast() { return m_ContrastValue; }
+            void    SetContrast( int ContrastValue ) { m_ContrastValue = ContrastValue; }
 };
 
 /***************************************************************************/
@@ -93,7 +160,7 @@ private:
     CMenuPageBase*  m_pPages[ MAX_PAGES ];
 
 public:
-                    CMenu( int NumOfPages, String PageType[] );
+                    CMenu( int NumOfPages, int PageType[] );
     virtual         ~CMenu();
 
     int             GetLevel() { return m_Level; }

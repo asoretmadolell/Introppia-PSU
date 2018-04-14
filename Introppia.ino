@@ -2,7 +2,7 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.11                                                       */
+/* Introppia PSU v0.12                                                       */
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
@@ -45,13 +45,14 @@
 volatile bool buttonPressed = false;
 volatile bool knobTurnedCW = false;
 volatile bool knobTurnedCCW = false;
+volatile static unsigned long lastInterruptTime = 0;
 
 // LCD screen
 LiquidCrystal_I2C myLcd( 0x27, 16, 2 );
 
 // Menu
-const int NumOfPages = 2;
-String PageType[ NumOfPages ] = { "PWM", "Contrast" };
+const int NumOfPages = 3;
+int PageType[ NumOfPages ] = { 1, 2, 3 };
 CMenu menu( NumOfPages, PageType );
 
 /*****************************************************************************/
@@ -83,7 +84,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.11  Hola, Vir!" );
+    myLcd.print( "v0.12  Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -102,18 +103,13 @@ void loop()
     if( !digitalRead( PEDAL_PIN ) )
     {
         CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage( 0 );
-        int PwmValue = pagePwm->GetValue();
+        int PwmValue = pagePwm->GetPwm();
         analogWrite( GATE_PIN, PwmValue );
     }
     else
     {
         analogWrite( GATE_PIN, 0 );
     }
-
-    /*
-    double voltageValue = menu.GetPage( 0 )->GetValue();
-    double speed = mapDouble( voltageValue, 0, 12, 0, 255 );
-    */
 
     /*
     int potValue = analogRead( A0 );
@@ -205,14 +201,13 @@ void isr1()
 {
     detachInterrupt( digitalPinToInterrupt( RECLK_PIN ) ); // this is to avoid interrupting an interrupt
 
-    // If interrupts come faster than 2ms, assume it's a bounce and ignore
-    static unsigned long lastInterruptTime = 0;
+    // If interrupts come faster than Xms, assume it's a bounce and ignore
     unsigned long interruptTime = millis();
-    if( interruptTime - lastInterruptTime > 2 )
+    if( interruptTime - lastInterruptTime > 15 )
     {
         digitalRead( REDT_PIN ) ? knobTurnedCW = true : knobTurnedCCW = true;
+        lastInterruptTime = interruptTime;
     }
-    lastInterruptTime = interruptTime;
 
     attachInterrupt( digitalPinToInterrupt( RECLK_PIN ), isr1, RISING );
 }
@@ -231,17 +226,32 @@ void debug()
     Serial.print( ", Page " );
     Serial.print( menu.GetCurrentPageIndex(), DEC );
     Serial.print( ", Type " );
-    Serial.print( menu.GetPage()->GetPageType() );
+    Serial.print( menu.GetPage()->GetName() );
     Serial.print( ", Value: " );
-    if( menu.GetPage()->GetPageType() == "PWM" )
+    switch( menu.GetPage()->GetType() )
     {
-        CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage();
-        Serial.print( pagePwm->GetValue(), DEC );
+        case 1:
+        {
+            CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage();
+            Serial.print( pagePwm->GetPwm(), DEC );
+            break;
+        }
+        case 2:
+        {
+            CMenuPagePedal* pagePedal = (CMenuPagePedal*)menu.GetPage();
+            Serial.print( pagePedal->GetPedal() );
+            break;
+        }
+        case 3:
+        {
+            CMenuPageContrast* pageContrast = (CMenuPageContrast*)menu.GetPage();
+            Serial.print( pageContrast->GetContrast(), DEC );
+            break;
+        }
+        default:
+            break;
     }
-    else
-    {
-        Serial.print( menu.GetPage()->GetValue(), DEC );
-    }
+    Serial.print( menu.GetPage()->GetUnit() );
     Serial.println();
 }
 
