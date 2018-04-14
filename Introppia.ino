@@ -2,7 +2,7 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.12                                                       */
+/* Introppia PSU v0.13                                                       */
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
@@ -18,6 +18,8 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoSTL.h>
+#include <ClickEncoder.h>
+#include <TimerOne.h>
 
 #include "src/CMenu_Classes.h"
 
@@ -45,7 +47,9 @@
 volatile bool buttonPressed = false;
 volatile bool knobTurnedCW = false;
 volatile bool knobTurnedCCW = false;
-volatile static unsigned long lastInterruptTime = 0;
+ClickEncoder* clickEncoder = new ClickEncoder( RECLK_PIN, REDT_PIN, RESW_PIN, 4 );
+int16_t clickEncoderValue;
+int16_t clickEncoderLast = -1;
 
 // LCD screen
 LiquidCrystal_I2C myLcd( 0x27, 16, 2 );
@@ -68,8 +72,9 @@ void setup()
     pinMode( RECLK_PIN, INPUT );
     pinMode( REDT_PIN, INPUT );
     pinMode( RESW_PIN, INPUT_PULLUP );
-    attachInterrupt( digitalPinToInterrupt( RESW_PIN ), isr0, RISING );
-    attachInterrupt( digitalPinToInterrupt( RECLK_PIN ), isr1, RISING );
+    Timer1.initialize( 1000 );
+    Timer1.attachInterrupt( timerIsr );
+    clickEncoder->setAccelerationEnabled( false );
 
     // MOSFET
     pinMode( GATE_PIN, OUTPUT );
@@ -84,7 +89,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.12  Hola, Vir!" );
+    myLcd.print( "v0.13 Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -98,7 +103,8 @@ void setup()
 /*****************************************************************************/
 void loop()
 {
-//    debug();
+//    debugMenu();
+//    debugClickEncoder();
 
     if( !digitalRead( PEDAL_PIN ) )
     {
@@ -120,6 +126,8 @@ void loop()
     myLcd.setCursor( 0, 1 );
     myLcd.print( analogSpeed );
     */
+
+    // Menu logic
 
     if( buttonPressed )
     {
@@ -176,6 +184,60 @@ void loop()
         }
         knobTurnedCCW = false;
     }
+
+    // Rotary encoder logic
+
+    clickEncoderValue += clickEncoder->getValue();
+
+    if( clickEncoderValue > clickEncoderLast )
+    {
+        clickEncoderLast = clickEncoderValue;
+        knobTurnedCW = true;
+    }
+    else if( clickEncoderValue < clickEncoderLast )
+    {
+        clickEncoderLast = clickEncoderValue;
+        knobTurnedCCW = true;
+    }
+    else
+    {
+        knobTurnedCW = false;
+        knobTurnedCCW = false;
+    }
+
+    ClickEncoder::Button button = clickEncoder->getButton();
+
+    if( button != ClickEncoder::Open )
+    {
+        switch( button )
+        {
+            case ClickEncoder::Pressed:
+                break;
+            case ClickEncoder::Held:
+                break;
+            case ClickEncoder::Released:
+                break;
+            case ClickEncoder::Clicked:
+                buttonPressed = true;
+                break;
+            case ClickEncoder::DoubleClicked:
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*                                                                           */
+/* timerIsr()                                                                */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+void timerIsr()
+{
+    clickEncoder->service();
 }
 
 /*****************************************************************************/
@@ -187,7 +249,6 @@ void loop()
 /*****************************************************************************/
 void isr0()
 {
-    buttonPressed = true;
 }
 
 /*****************************************************************************/
@@ -199,27 +260,16 @@ void isr0()
 /*****************************************************************************/
 void isr1()
 {
-    detachInterrupt( digitalPinToInterrupt( RECLK_PIN ) ); // this is to avoid interrupting an interrupt
-
-    // If interrupts come faster than Xms, assume it's a bounce and ignore
-    unsigned long interruptTime = millis();
-    if( interruptTime - lastInterruptTime > 15 )
-    {
-        digitalRead( REDT_PIN ) ? knobTurnedCW = true : knobTurnedCCW = true;
-        lastInterruptTime = interruptTime;
-    }
-
-    attachInterrupt( digitalPinToInterrupt( RECLK_PIN ), isr1, RISING );
 }
 
 /*****************************************************************************/
 /*                                                                           */
 /*                                                                           */
-/* debug()                                                                   */
+/* debugMenu()                                                               */
 /*                                                                           */
 /*                                                                           */
 /*****************************************************************************/
-void debug()
+void debugMenu()
 {
     Serial.print( "Level " );
     Serial.print( menu.GetLevel(), DEC );
@@ -253,6 +303,47 @@ void debug()
     }
     Serial.print( menu.GetPage()->GetUnit() );
     Serial.println();
+}
+
+/*****************************************************************************/
+/*                                                                           */
+/*                                                                           */
+/* debugClickEncoder()                                                       */
+/*                                                                           */
+/*                                                                           */
+/*****************************************************************************/
+void debugClickEncoder()
+{
+    clickEncoderValue += clickEncoder->getValue();
+
+    if( clickEncoderValue != clickEncoderLast )
+    {
+        clickEncoderLast = clickEncoderValue;
+        Serial.print( "Encoder value: " );
+        Serial.println( clickEncoderValue );
+    }
+
+    ClickEncoder::Button button = clickEncoder->getButton();
+
+    if( button != ClickEncoder::Open )
+    {
+        Serial.print( "Button: " );
+#define VERBOSECASE(label) case label: Serial.println(#label); break;
+        switch( button )
+        {
+            VERBOSECASE( ClickEncoder::Pressed )
+                ;
+            VERBOSECASE( ClickEncoder::Held )
+            VERBOSECASE( ClickEncoder::Released )
+            VERBOSECASE( ClickEncoder::Clicked )
+            case ClickEncoder::DoubleClicked:
+                Serial.println( "ClickEncoder::DoubleClicked" );
+                clickEncoder->setAccelerationEnabled( !clickEncoder->getAccelerationEnabled() );
+                Serial.print( "  Acceleration is " );
+                Serial.println( ( clickEncoder->getAccelerationEnabled() ) ? "enabled" : "disabled" );
+                break;
+        }
+    }
 }
 
 /*****************************************************************************/

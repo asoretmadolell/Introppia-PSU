@@ -47,9 +47,19 @@
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/ArduinoSTL/1.0.4</locationURI>
 		</link>
 		<link>
+			<name>libraries/ClickEncoder</name>
+			<type>2</type>
+			<location>C:/Users/soret/MEGA/Development/Arduino/libraries_sloeber/ClickEncoder</location>
+		</link>
+		<link>
 			<name>libraries/LiquidCrystal_I2C</name>
 			<type>2</type>
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/LiquidCrystal_I2C/1.1.2</locationURI>
+		</link>
+		<link>
+			<name>libraries/TimerOne</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/TimerOne/1.1.0</locationURI>
 		</link>
 		<link>
 			<name>libraries/Wire</name>
