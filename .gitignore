@@ -134,3 +134,4 @@ Release/**/*.eep
 Release/**/*.elf
 Release/**/*.hex
 Release/makefile
+/Release/

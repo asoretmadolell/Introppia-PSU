@@ -2,15 +2,9 @@
 /*                                                                           */
 /*                                                                           */
 /*                                                                           */
-/* Introppia PSU v0.13                                                       */
+/* Introppia PSU v0.14                                                       */
 /*                                                                           */
 /*                                                                           */
-/*                                                                           */
-/*****************************************************************************/
-/*                                                                           */
-/* Description:                                                              */
-/*                                                                           */
-/* An Arduino-based power supply for tattooists.                             */
 /*                                                                           */
 /*****************************************************************************/
 
@@ -34,7 +28,7 @@
 #define REDT_PIN    4
 
 // MOSFET
-#define GATE_PIN    9
+#define GATE_PIN    11
 #define POT_PIN     A0
 #define PEDAL_PIN   8
 
@@ -44,12 +38,15 @@
 /*                                                                         */
 /***************************************************************************/
 // Buttons
-volatile bool buttonPressed = false;
-volatile bool knobTurnedCW = false;
-volatile bool knobTurnedCCW = false;
+bool buttonPressed = false;
+bool knobTurnedCW = false;
+bool knobTurnedCCW = false;
+bool pedalPressed = false;
 ClickEncoder* clickEncoder = new ClickEncoder( RECLK_PIN, REDT_PIN, RESW_PIN, 4 );
 int16_t clickEncoderValue;
 int16_t clickEncoderLast = -1;
+unsigned long lastPedalPressedTime = 0;
+unsigned long pedalPressedTime;
 
 // LCD screen
 LiquidCrystal_I2C myLcd( 0x27, 16, 2 );
@@ -89,7 +86,7 @@ void setup()
     myLcd.setCursor( 0, 0 );
     myLcd.print( "Introppia PSU" );
     myLcd.setCursor( 0, 1 );
-    myLcd.print( "v0.13 Hola, Vir!" );
+    myLcd.print( "v0.14 Hola, Vir!" );
 //    delay( 2000 );
 //    myLcd.clear();
 }
@@ -106,16 +103,44 @@ void loop()
 //    debugMenu();
 //    debugClickEncoder();
 
-    if( !digitalRead( PEDAL_PIN ) )
+
+
+    CMenuPagePedal* pagePedal = (CMenuPagePedal*)menu.GetPage( 1 );
+    if( pagePedal->GetPedal() )                 // pedal option enabled
     {
-        CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage( 0 );
-        int PwmValue = pagePwm->GetPwm();
-        analogWrite( GATE_PIN, PwmValue );
+        if( !digitalRead( PEDAL_PIN ) )         // pedal changed / pressed
+        {
+            CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage( 0 );
+            int PwmValue = pagePwm->GetPwm();
+            analogWrite( GATE_PIN, PwmValue );
+        }
+        else                                    // pedal released
+        {
+            analogWrite( GATE_PIN, 0 );
+        }
     }
-    else
+    else                                        // pedal option disabled
     {
-        analogWrite( GATE_PIN, 0 );
+        if( !digitalRead( PEDAL_PIN ) )         // pedal changed / pressed
+        {
+            pedalPressedTime = millis();        // debounce
+            if( pedalPressedTime - lastPedalPressedTime > 500 ) pedalPressed = !pedalPressed;
+            lastPedalPressedTime = pedalPressedTime;
+
+            if( pedalPressed )                  // pedal changed / pressed
+            {
+                CMenuPagePwm* pagePwm = (CMenuPagePwm*)menu.GetPage( 0 );
+                int PwmValue = pagePwm->GetPwm();
+                analogWrite( GATE_PIN, PwmValue );
+            }
+            else
+            {
+                analogWrite( GATE_PIN, 0 );
+            }
+        }
     }
+
+
 
     /*
     int potValue = analogRead( A0 );
